@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wordl</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#faf7f2;--fg:#1f1d1a;--tile:#e6e1d8;--bd:#cfc8bb;--ok:#2f9e5b;--mid:#e0a526;--no:#6b6860;--key:#d9d3c7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--fg:#f1efe9;--tile:#25272e;--bd:#3a3d46;--no:#3b3d44;--key:#3a3d46}}
+:root[data-theme="dark"]{--bg:#15161a;--fg:#f1efe9;--tile:#25272e;--bd:#3a3d46;--no:#3b3d44;--key:#3a3d46}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:12px}
+h1{margin:4px 0;font-size:28px;letter-spacing:.3em;font-weight:800}
+#msg{height:28px;font-weight:600;text-align:center}
+#grid{display:grid;gap:6px;margin:6px 0 14px}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.t{width:clamp(48px,14vw,62px);aspect-ratio:1;border:2px solid var(--bd);display:grid;place-items:center;font-size:28px;font-weight:800;text-transform:uppercase;border-radius:6px;transition:transform .1s}
+.t.f{border-color:var(--fg);transform:scale(1.06)}
+.t.rev{animation:flip .5s both;color:#fff;border-color:transparent}
+.ok{background:var(--ok)}.mid{background:var(--mid)}.no{background:var(--no)}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hop{animation:hop .5s both}@keyframes hop{40%{transform:translateY(-14px)}}
+#kb{width:100%;max-width:500px;display:flex;flex-direction:column;gap:6px}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:44px;height:52px;border:0;border-radius:6px;background:var(--key);color:var(--fg);font-weight:700;font-size:14px;text-transform:uppercase;cursor:pointer}
+.k.w{max-width:66px;font-size:12px}
+.k.ok,.k.mid,.k.no{color:#fff}
+.bar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.btn{border:0;border-radius:20px;padding:10px 16px;font-weight:700;background:var(--fg);color:var(--bg);cursor:pointer}
+.btn.alt{background:var(--key);color:var(--fg)}
+#box{display:none;margin-top:12px;width:100%;max-width:420px;background:var(--tile);padding:12px;border-radius:10px;text-align:center}
+#box input{width:100%;padding:10px;border-radius:8px;border:1px solid var(--bd);font-size:18px;text-align:center;text-transform:uppercase;letter-spacing:.3em;background:var(--bg);color:var(--fg)}
+#box small{display:block;margin:8px 0;opacity:.75;word-break:break-all}
+#stats{margin-top:10px;opacity:.7;font-size:13px}
+</style></head><body>
+<h1>WORDL</h1>
+<div id="msg"></div>
+<div id="grid"></div>
+<div id="kb"></div>
+<div class="bar">
+  <button class="btn" id="newb">New word</button>
+  <button class="btn alt" id="chb">Challenge a friend</button>
+</div>
+<div id="box">
+  <div>Type a secret 5-letter word</div><br>
+  <input id="cw" maxlength="5" autocomplete="off" placeholder="•••••">
+  <small id="lnk"></small>
+  <button class="btn" id="mk">Create link</button>
+</div>
+<div id="stats"></div>
+<script>
+const WORDS="about above actor adult after again alarm album alert alien alive alone angel angry apple arena argue arise audio avoid awake bacon badge baker beach beard beast begin being below bench black blade blame blank blast blaze blend bliss block blood bloom board boast bonus boost brain brand brave bread break brick bride brief bring broad brown brush build bunch burst cabin cable candy carry catch cause chain chair chalk charm chase cheap check cheek chess chest chief child chill choir civic claim class clean clear clerk click cliff climb clock close cloth cloud coach coast cobra color comet coral couch count court cover crack craft crane crash crazy cream crisp cross crowd crown cycle daily dance dealt death debut decay delay depth dream dress drift drink drive eagle early earth eight elbow elite empty enemy enjoy enter equal error event every exact extra fable faith false fancy feast fence fever field fight final flame flash fleet float flock flood floor flour focus force forge frame fresh front frost fruit giant glass globe glory grace grade grain grand grape grass great green greet grief group guard guess guest guide habit happy harsh heart heavy hello honey honor horse hotel house human humor ideal image index inner input irony ivory jelly jewel joint judge juice karma knife knock label laser later laugh layer learn lemon level light limit linen liver lodge logic loose lucky lunar magic major maple march match mayor medal melon mercy merge metal meter minor mirror model money month moral motor mount mouse mouth movie music naive nerve never night noble noise north novel nurse ocean olive onion opera orbit order other otter outer owner paint panel paper party pasta patch pause peace pearl phase phone photo piano pilot pitch pixel pizza place plain plane plant plate plaza point polar power press price pride prime print prize proof proud pulse queen quest quick quiet quote radio raise range rapid raven reach react ready realm rebel relax reply rider ridge right river robot rocky rough round route royal rugby salad scale scene scout sense seven shade shape share sharp sheep shelf shell shine shirt shock shore short sight silly since skill sleep slice smart smile smoke snake solar solid solve sound south space spare spark speak speed spice spine split spoon sport spray squad stack staff stage stair stamp stand star start state steam steel stick still stone storm story stove strip study style sugar sunny super swamp sweet swift sword table taste teach tempo thank theme thick thing think throw thumb tiger title toast token tooth topic torch total touch tough tower toxic trace track trade trail train treat trend trial tribe trick truck truly trust truth twist ultra uncle under union unity upper urban usual valid value vapor vault venue video vigor vinyl viola viral visit vital vivid vocal voice waste watch water wheat wheel where which while white whole whose width witch woman world worry worth would wound write wrong young youth zebra".split(" ");
+const $=id=>document.getElementById(id);
+const grid=$("grid"),kb=$("kb"),msg=$("msg");
+let target,row,col,over,guesses,kstate,custom=false,wins=0,played=0;
+const safe=(f)=>{try{return f()}catch(e){return null}};
+const enc=w=>btoa(w.split("").map(c=>String.fromCharCode(c.charCodeAt(0)+3)).join(""));
+const dec=s=>atob(s).split("").map(c=>String.fromCharCode(c.charCodeAt(0)-3)).join("");
+function build(){
+  grid.innerHTML="";
+  for(let r=0;r<6;r++){const d=document.createElement("div");d.className="row";
+    for(let c=0;c<5;c++){const t=document.createElement("div");t.className="t";d.appendChild(t)}
+    grid.appendChild(d)}
+  kb.innerHTML="";
+  ["qwertyuiop","asdfghjkl","*zxcvbnm<"].forEach(s=>{const r=document.createElement("div");r.className="kr";
+    s.split("").forEach(ch=>{const b=document.createElement("button");b.className="k";
+      if(ch==="*"){b.textContent="Enter";b.classList.add("w");b.dataset.k="Enter"}
+      else if(ch==="<"){b.textContent="⌫";b.classList.add("w");b.dataset.k="Backspace"}
+      else{b.textContent=ch;b.dataset.k=ch}
+      b.onclick=()=>press(b.dataset.k);r.appendChild(b)});kb.appendChild(r)});
+}
+function start(word){
+  target=word||WORDS[Math.floor(Math.random()*WORDS.length)];
+  row=0;col=0;over=false;guesses=[];kstate={};build();
+  msg.textContent=custom?"A friend challenged you! 6 tries.":"Guess the word in 6 tries";
+  stats();
+}
+function tile(r,c){return grid.children[r].children[c]}
+function press(k){
+  if(over)return;
+  if(k==="Backspace"){if(col>0){col--;const t=tile(row,col);t.textContent="";t.classList.remove("f")}return}
+  if(k==="Enter"){submit();return}
+  if(/^[a-z]$/.test(k)&&col<5){const t=tile(row,col);t.textContent=k;t.classList.add("f");col++}
+}
+function score(g,t){
+  const res=Array(5).fill("no"),pool={};
+  for(let i=0;i<5;i++){if(g[i]===t[i])res[i]="ok";else pool[t[i]]=(pool[t[i]]||0)+1}
+  for(let i=0;i<5;i++){if(res[i]!=="ok"&&pool[g[i]]>0){res[i]="mid";pool[g[i]]--}}
+  return res;
+}
+function submit(){
+  if(col<5){shake("Not enough letters");return}
+  let g="";for(let c=0;c<5;c++)g+=tile(row,c).textContent;
+  if(guesses.includes(g)){shake("Already guessed");return}
+  guesses.push(g);
+  const res=score(g,target),r=row;
+  over=true;
+  res.forEach((s,i)=>setTimeout(()=>{const t=tile(r,i);t.classList.add("rev",s);
+    const rank={no:1,mid:2,ok:3};
+    if(!kstate[g[i]]||rank[s]>rank[kstate[g[i]]])kstate[g[i]]=s;
+    const kk=kb.querySelector(`[data-k="${g[i]}"]`);if(kk){kk.classList.remove("no","mid","ok");kk.classList.add(kstate[g[i]])}},i*300));
+  setTimeout(()=>{
+    if(g===target){msg.textContent=["Genius!","Superb!","Great!","Nice!","Phew!","Close one!"][r];
+      for(let i=0;i<5;i++)setTimeout(()=>tile(r,i).classList.add("hop"),i*100);
+      played++;wins++;stats();return}
+    row++;col=0;over=false;
+    if(row===6){over=true;msg.textContent="The word was "+target.toUpperCase();played++;stats()}
+  },1600);
+}
+function shake(m){msg.textContent=m;const d=grid.children[row];d.classList.remove("shake");void d.offsetWidth;d.classList.add("shake")}
+function stats(){$("stats").textContent=played?`Won ${wins} of ${played} this session`:""}
+document.addEventListener("keydown",e=>{
+  if(document.activeElement===$("cw")||e.ctrlKey||e.metaKey)return;
+  const k=e.key==="Enter"?"Enter":e.key==="Backspace"?"Backspace":e.key.toLowerCase();
+  if(k.length===1||k==="Enter"||k==="Backspace")press(k);
+});
+$("newb").onclick=()=>{custom=false;start()};
+$("chb").onclick=()=>{const b=$("box");b.style.display=b.style.display==="block"?"none":"block";$("lnk").textContent=""};
+$("mk").onclick=async()=>{
+  const w=$("cw").value.toLowerCase().trim();
+  if(!/^[a-z]{5}$/.test(w)){$("lnk").textContent="Use exactly 5 letters (a–z).";return}
+  const url=location.href.split("?")[0].split("#")[0]+"?c="+enc(w);
+  $("lnk").textContent=url;
+  let ok=false;
+  try{if(navigator.share){await navigator.share({title:"Wordl challenge",text:"Can you guess my word?",url});ok=true}}catch(e){}
+  if(!ok){try{await navigator.clipboard.writeText(url);ok=true}catch(e){}}
+  $("lnk").textContent=(ok?"Link copied! ":"Copy this link: ")+url;
+};
+const q=safe(()=>new URLSearchParams(location.search).get("c"));
+const cw=q?safe(()=>dec(q)):null;
+if(cw&&/^[a-z]{5}$/.test(cw)){custom=true;start(cw)}else start();
+</script></body></html>
